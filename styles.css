@@ -1,0 +1,125 @@
+:root {
+  --bg: #1f2a30;
+  --panel: #273640;
+  --panel-soft: #314550;
+  --text: #f3f6f8;
+  --gold: #d5a646;
+  --shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at 20% 20%, #355269 0%, var(--bg) 45%, #151d22 100%);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 2.3fr 1fr;
+  gap: 1.25rem;
+  padding: 1.25rem;
+}
+
+.board-panel,
+.legend-panel {
+  background: linear-gradient(165deg, var(--panel) 0%, #1f2c34 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.board-panel {
+  padding: 1rem;
+}
+
+.board-panel h1 {
+  margin: 0;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(213, 166, 70, 0.25);
+}
+
+.board-panel p {
+  margin-top: 0.35rem;
+  opacity: 0.92;
+}
+
+.board-wrapper {
+  margin: 1rem 0;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #65a4d0 0%, #4d89b8 45%, #2f6b95 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+#board {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.legend-panel {
+  padding: 1rem;
+}
+
+.legend-panel h2 {
+  margin: 0.15rem 0 0.75rem;
+  color: var(--gold);
+}
+
+.legend-panel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.legend-panel li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--panel-soft);
+  padding: 0.5rem 0.65rem;
+  border-radius: 9px;
+}
+
+.legend-chip {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.dice-box {
+  margin-top: 1.25rem;
+  background: var(--panel-soft);
+  border-radius: 10px;
+  padding: 0.8rem;
+}
+
+button {
+  border: 0;
+  background: linear-gradient(135deg, #d5a646 0%, #b48224 100%);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+@media (max-width: 1050px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catan - Tablero visual</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="board-panel">
+        <header>
+          <h1>CATAN</h1>
+          <p>Diseño inspirado en el tablero clásico de Los Colonos de Catan.</p>
+        </header>
+
+        <div class="board-wrapper">
+          <svg id="board" viewBox="0 0 1200 920" aria-label="Tablero de Catan"></svg>
+        </div>
+
+        <footer>
+          <p>
+            Distribución visual con 19 hexágonos, números de producción y puertos.
+          </p>
+        </footer>
+      </section>
+
+      <aside class="legend-panel">
+        <h2>Recursos</h2>
+        <ul id="resourceLegend"></ul>
+
+        <h2>Producción</h2>
+        <p>
+          Los números en rojo (6 y 8) tienen mayor probabilidad. El desierto alberga al ladrón.
+        </p>
+
+        <div class="dice-box">
+          <h2>Tirada de dados</h2>
+          <p id="diceResult">Pulsa para lanzar: 🎲 + 🎲</p>
+          <button id="rollDice">Lanzar dados</button>
+        </div>
+      </aside>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
