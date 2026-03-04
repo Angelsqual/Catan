@@ -1,4 +1,4 @@
-# Catan jugable — ahora con doble click real
+# Catan jugable — tú vs 3 CPUs (con doble click real)
 
 He dejado launchers para que no tengas que abrir terminal manualmente.
 
@@ -29,6 +29,12 @@ El lanzador imprime una URL como esta:
 
 Cópiala y pégala en el navegador.
 Si el puerto 4173 está ocupado, el lanzador usa otro libre (por ejemplo 4174) y te lo indica.
+
+
+## Modo de juego
+- Tú controlas al jugador **Rojo**.
+- Los otros 3 jugadores (**Azul, Verde y Naranja**) son CPU automáticas.
+- La CPU también hace su colocación inicial y sus turnos sin que tú pulses nada.
 
 ---
 

@@ -1,4 +1,5 @@
 const NS = 'http://www.w3.org/2000/svg';
+const HUMAN_ID = 0;
 
 const RES = {
   wood: { name: 'Madera', color: '#2f7a42', icon: '🌲' },
@@ -14,6 +15,8 @@ const COSTS = {
   settlement: { wood: 1, brick: 1, sheep: 1, wheat: 1 },
   city: { ore: 3, wheat: 2 }
 };
+
+const TOKEN_WEIGHT = { 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 8: 5, 9: 4, 10: 3, 11: 2, 12: 1 };
 
 const boardEl = document.getElementById('board');
 const turnInfo = document.getElementById('turnInfo');
@@ -44,10 +47,10 @@ const types = [
 const numbers = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11];
 
 const players = [
-  { id: 0, name: 'Rojo', color: '#d44b45' },
-  { id: 1, name: 'Azul', color: '#3d79d6' },
-  { id: 2, name: 'Verde', color: '#2f9b59' },
-  { id: 3, name: 'Naranja', color: '#d98a30' }
+  { id: 0, name: 'Tú (Rojo)', color: '#d44b45', cpu: false },
+  { id: 1, name: 'CPU Azul', color: '#3d79d6', cpu: true },
+  { id: 2, name: 'CPU Verde', color: '#2f9b59', cpu: true },
+  { id: 3, name: 'CPU Naranja', color: '#d98a30', cpu: true }
 ].map((p) => ({
   ...p,
   res: { wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 },
@@ -68,6 +71,7 @@ const state = {
   setupOrder: [0, 1, 2, 3, 3, 2, 1, 0],
   setupStep: 0,
   setupSettlementVertex: null,
+  cpuThinking: false,
   tiles: [],
   vertices: [],
   edges: [],
@@ -80,6 +84,10 @@ function log(msg) {
   item.className = 'log-item';
   item.textContent = msg;
   logEl.prepend(item);
+}
+
+function isCpuTurn() {
+  return players[state.current].cpu;
 }
 
 function points(cxArg, cyArg, r) {
@@ -184,11 +192,21 @@ function hasResources(player, cost) {
 }
 
 function spend(player, cost) {
-  Object.entries(cost).forEach(([k, v]) => { player.res[k] -= v; });
+  Object.entries(cost).forEach(([k, v]) => {
+    player.res[k] -= v;
+  });
 }
 
 function gain(player, resource, amount = 1) {
   player.res[resource] += amount;
+}
+
+function vertexProductionScore(vId) {
+  return state.vertices[vId].tiles.reduce((acc, tileId) => {
+    const tile = state.tiles[tileId];
+    if (!tile.number || tile.type === 'desert') return acc;
+    return acc + (TOKEN_WEIGHT[tile.number] || 0);
+  }, 0);
 }
 
 function grantSecondSettlementResources(player, vId) {
@@ -199,12 +217,39 @@ function grantSecondSettlementResources(player, vId) {
   log(`${player.name} recibe recursos por su 2º pueblo inicial.`);
 }
 
+function getCandidateSetupSettlements() {
+  return state.vertices
+    .map((v) => v.id)
+    .filter((vId) => canBuildSettlementAt(vId))
+    .sort((a, b) => vertexProductionScore(b) - vertexProductionScore(a));
+}
+
+function getEdgesTouchingVertex(vId) {
+  return state.edges.filter((e) => (e.a === vId || e.b === vId) && !state.edgeOwner.has(e.key));
+}
+
+function cpuChooseSetupSettlement() {
+  const options = getCandidateSetupSettlements();
+  return options[0] ?? null;
+}
+
+function cpuChooseSetupRoad(settlementVertex) {
+  const edges = getEdgesTouchingVertex(settlementVertex);
+  if (edges.length === 0) return null;
+  return edges.sort((e1, e2) => {
+    const far1 = e1.a === settlementVertex ? e1.b : e1.a;
+    const far2 = e2.a === settlementVertex ? e2.b : e2.a;
+    return vertexProductionScore(far2) - vertexProductionScore(far1);
+  })[0];
+}
+
 function advanceSetup() {
   state.setupStep += 1;
   if (state.setupStep >= state.setupOrder.length) {
     state.phase = 'main';
-    state.current = 0;
+    state.current = HUMAN_ID;
     state.mode = 'none';
+    state.cpuThinking = false;
     log('✅ Colocación inicial terminada. Empieza la partida normal: tira dados.');
     refresh();
     return;
@@ -215,6 +260,7 @@ function advanceSetup() {
   state.mode = 'settlement';
   log(`Colocación inicial: ${players[state.current].name} coloca pueblo.`);
   refresh();
+  maybeScheduleCpuTurn();
 }
 
 function handleSetupSettlement(vId) {
@@ -234,6 +280,7 @@ function handleSetupSettlement(vId) {
 
   log(`${p.name} coloca pueblo inicial. Ahora coloca carretera conectada.`);
   refresh();
+  maybeScheduleCpuTurn();
 }
 
 function handleSetupRoad(edge) {
@@ -407,6 +454,7 @@ function endTurn() {
   diceInfo.textContent = 'Sin tirada aún.';
   log(`Turno para ${players[state.current].name}.`);
   refresh();
+  maybeScheduleCpuTurn();
 }
 
 function setMode(mode) {
@@ -423,15 +471,19 @@ function renderBoard() {
   boardEl.innerHTML = '';
 
   state.tiles.forEach((t) => {
-    const polyPts = points(t.x, t.y, size).map(([x, y]) => `${x},${y}`).join(' ');
+    const polyPts = points(t.x, t.y, size)
+      .map(([x, y]) => `${x},${y}`)
+      .join(' ');
     const poly = svg('polygon', {
       points: polyPts,
       fill: RES[t.type].color,
       stroke: '#00000070',
       'stroke-width': '3'
     });
-    poly.style.cursor = state.awaitingRobberPlacement ? 'pointer' : 'default';
-    poly.addEventListener('click', () => moveRobberToTile(t.id));
+    poly.style.cursor = state.awaitingRobberPlacement && !isCpuTurn() ? 'pointer' : 'default';
+    poly.addEventListener('click', () => {
+      if (!isCpuTurn()) moveRobberToTile(t.id);
+    });
     boardEl.appendChild(poly);
 
     const icon = svg('text', { x: t.x, y: t.y - 18, 'text-anchor': 'middle', 'font-size': '30' });
@@ -472,8 +524,10 @@ function renderBoard() {
       'stroke-width': owner == null ? 7 : 10,
       'stroke-linecap': 'round'
     });
-    line.style.cursor = 'pointer';
-    line.addEventListener('click', () => tryBuildRoad(e));
+    line.style.cursor = isCpuTurn() ? 'not-allowed' : 'pointer';
+    line.addEventListener('click', () => {
+      if (!isCpuTurn()) tryBuildRoad(e);
+    });
     boardEl.appendChild(line);
   });
 
@@ -488,8 +542,9 @@ function renderBoard() {
       stroke: '#1b2125',
       'stroke-width': '2'
     });
-    node.style.cursor = 'pointer';
+    node.style.cursor = isCpuTurn() ? 'not-allowed' : 'pointer';
     node.addEventListener('click', () => {
+      if (isCpuTurn()) return;
       if (state.mode === 'settlement') tryBuildSettlement(v.id);
       if (state.mode === 'city') tryBuildCity(v.id);
     });
@@ -511,16 +566,17 @@ function renderPlayers() {
   });
 
   if (state.phase === 'main') {
-    turnInfo.textContent = `Fase: partida normal · Jugador activo: ${players[state.current].name}`;
+    turnInfo.textContent = `Fase: partida normal · Turno: ${players[state.current].name}${isCpuTurn() ? ' (pensando...)' : ''}`;
   } else {
     const detail = state.phase === 'setup_settlement' ? 'coloca pueblo inicial' : 'coloca carretera inicial';
-    turnInfo.textContent = `Fase inicial · ${players[state.current].name}: ${detail}`;
+    turnInfo.textContent = `Fase inicial · ${players[state.current].name}: ${detail}${isCpuTurn() ? ' (CPU)' : ''}`;
   }
 }
 
 function checkWin(player) {
   if (player.points >= 10) {
     state.gameOver = true;
+    state.cpuThinking = false;
     log(`🏆 ${player.name} gana la partida con ${player.points} puntos.`);
     alert(`🏆 ${player.name} gana la partida con ${player.points} puntos.`);
   }
@@ -544,6 +600,7 @@ function doTrade() {
   if (state.gameOver) return;
   if (state.phase !== 'main') return log('El comercio se habilita después de la colocación inicial.');
   if (state.awaitingRobberPlacement) return log('Primero coloca el ladrón en una loseta.');
+  if (isCpuTurn()) return;
 
   const give = tradeGive.value;
   const get = tradeGet.value;
@@ -559,23 +616,167 @@ function doTrade() {
   refresh();
 }
 
+function cpuSelectRobberTile() {
+  let bestTile = state.robberTile;
+  let bestScore = -1;
+  state.tiles.forEach((tile) => {
+    if (tile.type === 'desert') return;
+    let score = 0;
+    tile.vertices.forEach((vId) => {
+      const owner = state.vertexOwner.get(vId);
+      if (owner == null || owner === state.current) return;
+      score += players[owner].cities.has(vId) ? 2 : 1;
+    });
+    if (score > bestScore) {
+      bestScore = score;
+      bestTile = tile.id;
+    }
+  });
+  return bestTile;
+}
+
+function cpuBuildCity(player) {
+  if (!hasResources(player, COSTS.city)) return false;
+  const candidates = [...player.settlements].sort((a, b) => vertexProductionScore(b) - vertexProductionScore(a));
+  if (candidates.length === 0) return false;
+  setMode('city');
+  tryBuildCity(candidates[0]);
+  return true;
+}
+
+function cpuBuildSettlement(player) {
+  if (!hasResources(player, COSTS.settlement)) return false;
+  const candidates = state.vertices
+    .map((v) => v.id)
+    .filter((vId) => canBuildSettlementAt(vId) && connectedToPlayer(vId, player))
+    .sort((a, b) => vertexProductionScore(b) - vertexProductionScore(a));
+  if (candidates.length === 0) return false;
+  setMode('settlement');
+  tryBuildSettlement(candidates[0]);
+  return true;
+}
+
+function cpuBuildRoad(player) {
+  if (!hasResources(player, COSTS.road)) return false;
+  const edges = state.edges
+    .filter((e) => !state.edgeOwner.has(e.key) && canAttachRoad(player, e))
+    .sort((e1, e2) => {
+      const score1 = vertexProductionScore(e1.a) + vertexProductionScore(e1.b);
+      const score2 = vertexProductionScore(e2.a) + vertexProductionScore(e2.b);
+      return score2 - score1;
+    });
+  if (edges.length === 0) return false;
+  setMode('road');
+  tryBuildRoad(edges[0]);
+  return true;
+}
+
+function cpuTryTradeFor(targetCost, player) {
+  const resources = ['wood', 'brick', 'sheep', 'wheat', 'ore'];
+  let traded = false;
+
+  resources.forEach((want) => {
+    const need = (targetCost[want] || 0) - player.res[want];
+    if (need <= 0) return;
+
+    const giver = resources
+      .filter((r) => r !== want && player.res[r] >= 4)
+      .sort((a, b) => player.res[b] - player.res[a])[0];
+
+    if (giver) {
+      player.res[giver] -= 4;
+      player.res[want] += 1;
+      traded = true;
+      log(`${player.name} comercia 4 ${RES[giver].name} por 1 ${RES[want].name}.`);
+    }
+  });
+
+  if (traded) refresh();
+  return traded;
+}
+
+function runCpuSetupAction() {
+  if (!isCpuTurn() || state.gameOver) return;
+  const cpu = players[state.current];
+
+  if (state.phase === 'setup_settlement') {
+    const chosen = cpuChooseSetupSettlement();
+    if (chosen != null) {
+      handleSetupSettlement(chosen);
+    }
+    return;
+  }
+
+  if (state.phase === 'setup_road') {
+    const edge = cpuChooseSetupRoad(state.setupSettlementVertex);
+    if (edge) handleSetupRoad(edge);
+  }
+}
+
+function runCpuMainTurn() {
+  if (!isCpuTurn() || state.gameOver || state.phase !== 'main') return;
+  const cpu = players[state.current];
+
+  if (!state.rolled) rollDice();
+  if (state.awaitingRobberPlacement) moveRobberToTile(cpuSelectRobberTile());
+
+  for (let i = 0; i < 5; i++) {
+    if (cpuBuildCity(cpu)) continue;
+    if (cpuBuildSettlement(cpu)) continue;
+    if (cpuBuildRoad(cpu)) continue;
+
+    const traded = cpuTryTradeFor(COSTS.settlement, cpu) || cpuTryTradeFor(COSTS.city, cpu) || cpuTryTradeFor(COSTS.road, cpu);
+    if (!traded) break;
+  }
+
+  if (!state.gameOver) endTurn();
+}
+
+function maybeScheduleCpuTurn() {
+  if (state.gameOver || !isCpuTurn() || state.cpuThinking) return;
+  state.cpuThinking = true;
+  refresh();
+
+  setTimeout(() => {
+    if (state.gameOver || !isCpuTurn()) {
+      state.cpuThinking = false;
+      refresh();
+      return;
+    }
+
+    if (state.phase === 'main') runCpuMainTurn();
+    else runCpuSetupAction();
+
+    state.cpuThinking = false;
+    refresh();
+  }, 650);
+}
+
 function refresh() {
   setMode(state.mode);
   renderBoard();
   renderPlayers();
-  rollBtn.disabled = state.phase !== 'main' || state.rolled || state.gameOver;
-  endTurnBtn.disabled = state.phase !== 'main' || !state.rolled || state.awaitingRobberPlacement || state.gameOver;
-  tradeBtn.disabled = state.phase !== 'main' || state.gameOver;
+
+  const lockHuman = isCpuTurn() || state.cpuThinking;
+  rollBtn.disabled = state.phase !== 'main' || state.rolled || state.gameOver || lockHuman;
+  endTurnBtn.disabled = state.phase !== 'main' || !state.rolled || state.awaitingRobberPlacement || state.gameOver || lockHuman;
+  tradeBtn.disabled = state.phase !== 'main' || state.gameOver || lockHuman;
 }
 
 rollBtn.addEventListener('click', rollDice);
 endTurnBtn.addEventListener('click', endTurn);
 tradeBtn.addEventListener('click', doTrade);
-document.querySelectorAll('.mode-btn').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+document.querySelectorAll('.mode-btn').forEach((b) =>
+  b.addEventListener('click', () => {
+    if (!isCpuTurn()) setMode(b.dataset.mode);
+  })
+);
 
 buildBoardGraph();
 fillTradeSelects();
 state.mode = 'settlement';
+log('Partida: tú (rojo) contra 3 CPUs.');
 log('Fase inicial: cada jugador coloca 2 pueblos y 2 carreteras (orden 1-2-3-4-4-3-2-1).');
 log(`Empieza ${players[state.current].name}: coloca tu pueblo inicial.`);
 refresh();
+maybeScheduleCpuTurn();
