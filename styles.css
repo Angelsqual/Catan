@@ -37,8 +37,6 @@ h1 { margin: 0; color: var(--gold); letter-spacing: .08em; }
 .card { background: var(--card); border-radius: 10px; padding: .7rem; }
 .card h2 { margin: 0 0 .45rem; color: var(--gold); font-size: 1rem; }
 .help-box ol { margin: .2rem 0 .5rem 1.1rem; padding: 0; display: grid; gap: .2rem; }
-.help-note { margin: 0; font-size: .88rem; opacity: .92; }
-code { background: #14232c; border-radius: 6px; padding: .08rem .32rem; }
 button, select {
   border: 0;
   border-radius: 8px;
@@ -63,16 +61,46 @@ button:hover { filter: brightness(1.08); }
   font-size: .92rem;
 }
 .player-card.active { outline: 2px solid #fff; }
-#log {
-  max-height: 220px;
-  overflow: auto;
-  font-size: .85rem;
-  display: grid;
-  gap: .3rem;
-}
+#log { max-height: 220px; overflow: auto; font-size: .85rem; display: grid; gap: .3rem; }
 .log-item { background: #1b2a33; padding: .35rem; border-radius: 6px; }
 .tile-number { font-weight: 800; }
 .robber { filter: drop-shadow(0 0 6px rgba(0,0,0,.6)); }
+.dice-visual { display: flex; gap: .6rem; margin: .4rem 0 .6rem; }
+.die {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: #f5f1e8;
+  color: #1d2c38;
+  font-size: 1.2rem;
+  font-weight: 800;
+  border: 2px solid #9f7a40;
+}
+.die.rolling { animation: bounce .12s linear infinite alternate; }
+@keyframes bounce { from { transform: translateY(-2px) rotate(-5deg);} to { transform: translateY(2px) rotate(5deg);} }
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 14, 18, 0.78);
+  display: grid;
+  place-items: center;
+  z-index: 20;
+}
+.setup-card {
+  background: #243641;
+  border: 1px solid #ffffff33;
+  border-radius: 12px;
+  padding: 1rem;
+  min-width: 320px;
+  display: grid;
+  gap: .55rem;
+}
+.setup-card h2 { margin: 0; color: var(--gold); }
+.hidden { display: none; }
+
 @media (max-width: 1100px) {
   .app { grid-template-columns: 1fr; }
 }

@@ -3,14 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Catan jugable</title>
+    <title>Catan Pokémon</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <div id="setupOverlay" class="overlay">
+      <div class="setup-card">
+        <h2>Elige tu color Pokémon</h2>
+        <p>Jugarás contra 3 CPUs.</p>
+        <select id="playerThemeSelect"></select>
+        <button id="startGameBtn">Comenzar partida</button>
+      </div>
+    </div>
+
     <main class="app">
       <section class="board-panel">
-        <h1>CATAN (versión jugable)</h1>
-        <p>Juegas tú (rojo) contra 3 CPUs. Construye pueblos, ciudades y carreteras para llegar a 10 puntos.</p>
+        <h1>CATAN Pokémon Edition</h1>
+        <p>Elige tu color y juega contra 3 máquinas.</p>
         <div class="board-wrap">
           <svg id="board" viewBox="0 0 1280 940" aria-label="Tablero de Catan"></svg>
         </div>
@@ -20,19 +29,22 @@
         <section class="help-box card">
           <h2>Cómo jugar rápido</h2>
           <ol>
-            <li><strong>Fase inicial:</strong> cada jugador coloca 2 pueblos y 2 carreteras (la CPU se coloca sola en sus turnos, orden 1-2-3-4-4-3-2-1).</li>
-            <li>Luego, en cada turno: pulsa <strong>🎲 Tirar dados</strong>.</li>
-            <li>Elige modo: <strong>Carretera</strong>, <strong>Pueblo</strong> o <strong>Ciudad</strong> y haz click en tablero.</li>
-            <li>Opcional: usa <strong>Comercio 4:1</strong>.</li>
-            <li>Pulsa <strong>Finalizar turno</strong> para pasar al siguiente jugador.</li>
+            <li>Fase inicial: 2 pueblos + 2 carreteras por jugador.</li>
+            <li>Pulsa <strong>🎲 Tirar dados</strong>.</li>
+            <li>Construye con botones y click en tablero.</li>
+            <li>Comercia 4:1 si te conviene.</li>
+            <li>Finaliza turno.</li>
           </ol>
-          <p class="help-note">Abrir en doble click: <code>Catan.bat</code> (Windows) o <code>Catan.command</code> (macOS/Linux). Alternativa terminal: <code>./jugar-catan.sh</code>.</p>
         </section>
 
         <section class="turn-box card">
           <h2>Turno</h2>
           <p id="turnInfo"></p>
           <p id="diceInfo">Sin tirada aún.</p>
+          <div class="dice-visual">
+            <div class="die" id="die1">1</div>
+            <div class="die" id="die2">1</div>
+          </div>
           <button id="rollBtn">🎲 Tirar dados</button>
           <button id="endTurnBtn">Finalizar turno</button>
         </section>
