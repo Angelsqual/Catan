@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catan jugable</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <section class="board-panel">
+        <h1>CATAN (versión jugable)</h1>
+        <p>Hasta 4 jugadores en local. Construye pueblos, ciudades y carreteras para llegar a 10 puntos.</p>
+        <div class="board-wrap">
+          <svg id="board" viewBox="0 0 1280 940" aria-label="Tablero de Catan"></svg>
+        </div>
+      </section>
+
+      <aside class="ui-panel">
+        <section class="help-box card">
+          <h2>Cómo jugar rápido</h2>
+          <ol>
+            <li><strong>Fase inicial:</strong> cada jugador coloca 2 pueblos y 2 carreteras (automático en orden 1-2-3-4-4-3-2-1).</li>
+            <li>Luego, en cada turno: pulsa <strong>🎲 Tirar dados</strong>.</li>
+            <li>Elige modo: <strong>Carretera</strong>, <strong>Pueblo</strong> o <strong>Ciudad</strong> y haz click en tablero.</li>
+            <li>Opcional: usa <strong>Comercio 4:1</strong>.</li>
+            <li>Pulsa <strong>Finalizar turno</strong> para pasar al siguiente jugador.</li>
+          </ol>
+          <p class="help-note">Para abrirlo en 1 click: ejecuta <code>./jugar-catan.sh</code>. Alternativa: <code>python3 -m http.server 4173</code> y <code>http://localhost:4173</code>.</p>
+        </section>
+
+        <section class="turn-box card">
+          <h2>Turno</h2>
+          <p id="turnInfo"></p>
+          <p id="diceInfo">Sin tirada aún.</p>
+          <button id="rollBtn">🎲 Tirar dados</button>
+          <button id="endTurnBtn">Finalizar turno</button>
+        </section>
+
+        <section class="build-box card">
+          <h2>Construcción</h2>
+          <div class="btn-row">
+            <button data-mode="none" class="mode-btn active">Seleccionar</button>
+            <button data-mode="road" class="mode-btn">Carretera</button>
+            <button data-mode="settlement" class="mode-btn">Pueblo</button>
+            <button data-mode="city" class="mode-btn">Ciudad</button>
+          </div>
+          <p id="modeInfo">Modo actual: seleccionar.</p>
+          <ul>
+            <li>Carretera: 1 madera + 1 arcilla</li>
+            <li>Pueblo: 1 madera + 1 arcilla + 1 lana + 1 trigo</li>
+            <li>Ciudad: 3 mineral + 2 trigo</li>
+          </ul>
+        </section>
+
+        <section class="trade-box card">
+          <h2>Comercio con banco (4:1)</h2>
+          <div class="trade-controls">
+            <select id="tradeGive"></select>
+            <span>→</span>
+            <select id="tradeGet"></select>
+            <button id="tradeBtn">Intercambiar</button>
+          </div>
+        </section>
+
+        <section class="players-box card">
+          <h2>Jugadores</h2>
+          <div id="players"></div>
+        </section>
+
+        <section class="log-box card">
+          <h2>Registro</h2>
+          <div id="log"></div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

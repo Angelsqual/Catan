@@ -1,0 +1,78 @@
+:root {
+  --bg: #162028;
+  --panel: #22313a;
+  --card: #2a3d49;
+  --text: #ecf3f7;
+  --gold: #d7ab4b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(circle at top left, #335d77, #1a2a34 45%, #0e151b 100%);
+}
+.app {
+  display: grid;
+  grid-template-columns: 2.1fr 1fr;
+  gap: 1rem;
+  padding: 1rem;
+}
+.board-panel, .ui-panel {
+  background: linear-gradient(165deg, var(--panel), #1a272f);
+  border: 1px solid #ffffff22;
+  border-radius: 14px;
+}
+.board-panel { padding: 1rem; }
+h1 { margin: 0; color: var(--gold); letter-spacing: .08em; }
+.board-wrap {
+  margin-top: .8rem;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #ffffff33;
+  background: linear-gradient(#69a7d5, #3f7ca9);
+}
+#board { width: 100%; display: block; }
+.ui-panel { padding: .8rem; display: grid; gap: .75rem; align-content: start; max-height: 95vh; overflow: auto; }
+.card { background: var(--card); border-radius: 10px; padding: .7rem; }
+.card h2 { margin: 0 0 .45rem; color: var(--gold); font-size: 1rem; }
+.help-box ol { margin: .2rem 0 .5rem 1.1rem; padding: 0; display: grid; gap: .2rem; }
+.help-note { margin: 0; font-size: .88rem; opacity: .92; }
+code { background: #14232c; border-radius: 6px; padding: .08rem .32rem; }
+button, select {
+  border: 0;
+  border-radius: 8px;
+  padding: .45rem .65rem;
+}
+button {
+  background: linear-gradient(135deg, #d7ab4b, #b58326);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+.btn-row { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .4rem; }
+.mode-btn.active { outline: 2px solid #fff; }
+.trade-controls { display: flex; align-items: center; gap: .35rem; }
+#players { display: grid; gap: .45rem; }
+.player-card {
+  padding: .5rem;
+  border-radius: 8px;
+  background: #1f2e38;
+  border-left: 6px solid transparent;
+  font-size: .92rem;
+}
+.player-card.active { outline: 2px solid #fff; }
+#log {
+  max-height: 220px;
+  overflow: auto;
+  font-size: .85rem;
+  display: grid;
+  gap: .3rem;
+}
+.log-item { background: #1b2a33; padding: .35rem; border-radius: 6px; }
+.tile-number { font-weight: 800; }
+.robber { filter: drop-shadow(0 0 6px rgba(0,0,0,.6)); }
+@media (max-width: 1100px) {
+  .app { grid-template-columns: 1fr; }
+}
