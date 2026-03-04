@@ -11,10 +11,10 @@ const RES = {
 };
 
 const THEMES = {
-  red: { color: '#d44b45', badge: '🔥', pokemon: 'Charmander' },
-  blue: { color: '#3d79d6', badge: '💧', pokemon: 'Squirtle' },
-  green: { color: '#2f9b59', badge: '🌿', pokemon: 'Bulbasaur' },
-  yellow: { color: '#d9c72f', badge: '⚡', pokemon: 'Pikachu' }
+  red: { color: '#d44b45', badge: '🔥', pokemon: 'Charmander', settlementIcon: '🦎', cityIcon: '🐲', roadIcon: '🔥' },
+  blue: { color: '#3d79d6', badge: '💧', pokemon: 'Squirtle', settlementIcon: '🐢', cityIcon: '🐢💦', roadIcon: '💧' },
+  green: { color: '#2f9b59', badge: '🌿', pokemon: 'Bulbasaur', settlementIcon: '🦖', cityIcon: '🌺', roadIcon: '🌿' },
+  yellow: { color: '#d9c72f', badge: '⚡', pokemon: 'Pikachu', settlementIcon: '🐭', cityIcon: '⚡🐭', roadIcon: '⚡' }
 };
 
 const COSTS = {
@@ -49,14 +49,15 @@ const stepY = 1.5 * size;
 const cx = 640;
 const topY = 130;
 
-const types = [
-  'wood', 'brick', 'sheep',
-  'wheat', 'ore', 'wood', 'wheat',
-  'sheep', 'ore', 'desert', 'brick', 'sheep',
-  'wheat', 'wood', 'brick', 'ore',
-  'sheep', 'wheat', 'wood'
+const BASE_TILE_TYPES = [
+  'wood', 'wood', 'wood', 'wood',
+  'brick', 'brick', 'brick',
+  'sheep', 'sheep', 'sheep', 'sheep',
+  'wheat', 'wheat', 'wheat', 'wheat',
+  'ore', 'ore', 'ore',
+  'desert'
 ];
-const numbers = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11];
+const BASE_TOKEN_NUMBERS = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11];
 
 let players = [];
 
@@ -77,6 +78,8 @@ const state = {
   tiles: [],
   vertices: [],
   edges: [],
+  boardTypes: [],
+  boardNumbers: [],
   vertexOwner: new Map(),
   edgeOwner: new Map()
 };
@@ -113,6 +116,20 @@ function svg(tag, attrs = {}) {
   const e = document.createElementNS(NS, tag);
   Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v));
   return e;
+}
+
+function shuffle(list) {
+  const arr = [...list];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function generateRandomBoardSetup() {
+  state.boardTypes = shuffle(BASE_TILE_TYPES);
+  state.boardNumbers = shuffle(BASE_TOKEN_NUMBERS);
 }
 
 function buildBoardGraph() {
@@ -158,8 +175,8 @@ function buildBoardGraph() {
         id: tIndex,
         x,
         y,
-        type: types[tIndex],
-        number: types[tIndex] === 'desert' ? null : numbers[nIndex++],
+        type: state.boardTypes[tIndex],
+        number: state.boardTypes[tIndex] === 'desert' ? null : state.boardNumbers[nIndex++],
         vertices: cornerIds
       });
       tIndex += 1;
@@ -173,7 +190,7 @@ function resetStateForNewGame() {
   state.mode = 'settlement';
   state.gameOver = false;
   state.phase = 'setup_settlement';
-  state.robberTile = 9;
+  state.robberTile = 0;
   state.awaitingRobberPlacement = false;
   state.setupStep = 0;
   state.setupSettlementVertex = null;
@@ -536,15 +553,34 @@ function renderBoard() {
     const a = state.vertices[e.a];
     const b = state.vertices[e.b];
     const owner = state.edgeOwner.get(e.key);
-    const line = svg('line', {
+
+    const baseLine = svg('line', {
       x1: a.x, y1: a.y, x2: b.x, y2: b.y,
       stroke: owner == null ? '#ffffff55' : players[owner].color,
       'stroke-width': owner == null ? 7 : 10,
       'stroke-linecap': 'round'
     });
-    line.style.cursor = isCpuTurn() ? 'not-allowed' : 'pointer';
-    line.addEventListener('click', () => { if (!isCpuTurn()) tryBuildRoad(e); });
-    boardEl.appendChild(line);
+    baseLine.style.cursor = isCpuTurn() ? 'not-allowed' : 'pointer';
+    baseLine.addEventListener('click', () => { if (!isCpuTurn()) tryBuildRoad(e); });
+    boardEl.appendChild(baseLine);
+
+    if (owner != null) {
+      const p = players[owner];
+      const shine = svg('line', {
+        x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+        stroke: '#ffffff88',
+        'stroke-width': '2.5',
+        'stroke-linecap': 'round',
+        'stroke-dasharray': '8 8'
+      });
+      boardEl.appendChild(shine);
+
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      const roadMark = svg('text', { x: midX, y: midY + 4, 'text-anchor': 'middle', 'font-size': '12' });
+      roadMark.textContent = p.badge;
+      boardEl.appendChild(roadMark);
+    }
   });
 
   state.vertices.forEach((v) => {
@@ -564,7 +600,7 @@ function renderBoard() {
       boardEl.appendChild(bg);
 
       const txt = svg('text', { x: v.x, y: v.y + 5, 'text-anchor': 'middle', 'font-size': isCity ? '16' : '14', fill: '#0f1a21' });
-      txt.textContent = isCity ? '🏰' : '🏠';
+      txt.textContent = isCity ? p.cityIcon : p.settlementIcon;
       boardEl.appendChild(txt);
 
       const poke = svg('text', { x: v.x, y: v.y - (isCity ? 15 : 12), 'text-anchor': 'middle', 'font-size': '12' });
@@ -779,6 +815,9 @@ function populateThemeSelect() {
 function startGame() {
   configurePlayers(playerThemeSelect.value || 'red');
   resetStateForNewGame();
+  generateRandomBoardSetup();
+  buildBoardGraph();
+  state.robberTile = state.tiles.find((t) => t.type === 'desert')?.id ?? 0;
   fillTradeSelects();
   setupOverlay.classList.add('hidden');
   state.started = true;
@@ -796,6 +835,7 @@ tradeBtn.addEventListener('click', doTrade);
 document.querySelectorAll('.mode-btn').forEach((b) => b.addEventListener('click', () => { if (!isCpuTurn()) setMode(b.dataset.mode); }));
 startGameBtn.addEventListener('click', startGame);
 
+generateRandomBoardSetup();
 buildBoardGraph();
 populateThemeSelect();
 configurePlayers('red');
