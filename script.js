@@ -744,11 +744,15 @@ function maybeScheduleCpuTurn() {
       return;
     }
 
+    // Liberamos el lock antes de actuar para permitir encadenar acciones CPU
+    // (por ejemplo, pueblo inicial -> carretera inicial) sin quedarse bloqueada.
+    state.cpuThinking = false;
+
     if (state.phase === 'main') runCpuMainTurn();
     else runCpuSetupAction();
 
-    state.cpuThinking = false;
     refresh();
+    maybeScheduleCpuTurn();
   }, 650);
 }
 
