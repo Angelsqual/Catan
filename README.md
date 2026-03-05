@@ -13,15 +13,23 @@
   - ⚡ Pikachu (amarillo)
 - Los otros 3 equipos los controla la CPU.
 - Dados con animación visual.
-- Pueblos y ciudades con iconos temáticos (en lugar de solo círculos).
-- Carreteras, pueblos y ciudades tienen personalización Pokémon por color.
-- IA mejorada: ahora intenta construir más pueblos, no solo carreteras/ciudades.
+- Pueblo = **Charmander** (🦎) y Ciudad = **Charizard** (🐉).
+- Puertos marítimos con comercio **3:1** y **2:1** por recurso.
+- Cartas de desarrollo (coste: 1 lana + 1 trigo + 1 mineral):
+  - Caballero,
+  - Punto de victoria,
+  - Construcción de carreteras,
+  - Año de abundancia,
+  - Monopolio.
+- Premios especiales:
+  - Ruta comercial (carretera más larga, mínimo 5) = +2 puntos.
+  - Gran ejército (mínimo 3 caballeros jugados) = +2 puntos.
 - El tablero cambia aleatoriamente en cada partida.
 
 ## Flujo de partida
 1. Elige tu equipo y pulsa **Comenzar partida**.
 2. Fase inicial: 2 pueblos + 2 carreteras por jugador.
-3. Fase normal: tirar dados, construir, comerciar 4:1 y terminar turno.
+3. Fase normal: tirar dados, construir, usar desarrollo, comerciar y terminar turno.
 4. Gana quien llega a 10 puntos.
 
 ## Cerrar
