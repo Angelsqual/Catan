@@ -11,10 +11,10 @@ const RES = {
 };
 
 const THEMES = {
-  red: { color: '#d44b45', badge: '🔥', pokemon: 'Charmander' },
-  blue: { color: '#3d79d6', badge: '💧', pokemon: 'Squirtle' },
-  green: { color: '#2f9b59', badge: '🌿', pokemon: 'Bulbasaur' },
-  yellow: { color: '#d9c72f', badge: '⚡', pokemon: 'Pikachu' }
+  red: { color: '#d44b45', badge: '🔥', pokemon: 'Charmander', settlementIcon: '🦎', cityIcon: '🐲' },
+  blue: { color: '#3d79d6', badge: '💧', pokemon: 'Squirtle', settlementIcon: '🐢', cityIcon: '🧢🐢' },
+  green: { color: '#2f9b59', badge: '🌿', pokemon: 'Bulbasaur', settlementIcon: '🌱', cityIcon: '🌺🦕' },
+  yellow: { color: '#d9c72f', badge: '⚡', pokemon: 'Pikachu', settlementIcon: '🐭', cityIcon: '⚡🐭' }
 };
 
 const COSTS = {
@@ -173,9 +173,28 @@ function updateLargestArmy(){
 
 function longestRoadLen(player){
   const adj=new Map();
-  player.roads.forEach(k=>{const [a,b]=k.split('-').map(Number); if(!adj.has(a)) adj.set(a,[]); if(!adj.has(b)) adj.set(b,[]); adj.get(a).push([b,k]); adj.get(b).push([a,k]);});
+  player.roads.forEach(k=>{
+    const [a,b]=k.split('-').map(Number);
+    if(!adj.has(a)) adj.set(a,[]);
+    if(!adj.has(b)) adj.set(b,[]);
+    adj.get(a).push([b,k]);
+    adj.get(b).push([a,k]);
+  });
   let best=0;
-  const dfs=(node, used)=>{ best=Math.max(best, used.size); for(const [next,ek] of (adj.get(node)||[])){ if(used.has(ek)) continue; used.add(ek); dfs(next, used); used.delete(ek);} };
+  const blocked=(v)=>{
+    const owner=state.vertexOwner.get(v);
+    return owner!=null && owner!==player.id;
+  };
+  const dfs=(node, used)=>{
+    best=Math.max(best, used.size);
+    for(const [next,ek] of (adj.get(node)||[])){
+      if(used.has(ek)) continue;
+      if(blocked(node) && used.size>0) continue;
+      used.add(ek);
+      dfs(next, used);
+      used.delete(ek);
+    }
+  };
   [...adj.keys()].forEach(start=>dfs(start,new Set()));
   return best;
 }
@@ -273,7 +292,14 @@ function buyDevelopmentCard(){
 function useKnight(){
   const p=players[state.current];
   if(state.gameOver||state.phase!=='main'||isCpuTurn()||!state.rolled||state.awaitingRobberPlacement||p.dev.knight<1) return;
-  p.dev.knight-=1; p.playedKnights+=1; state.awaitingRobberPlacement=true; updateLargestArmy(); checkWin(p); log(`${p.name} usa Caballero.`); refresh();
+  p.dev.knight-=1;
+  p.playedKnights+=1;
+  state.awaitingRobberPlacement=true;
+  state.mode='none';
+  updateLargestArmy();
+  checkWin(p);
+  log(`${p.name} usa Caballero: ahora debes mover el ladrón haciendo click en una loseta.`);
+  refresh();
 }
 
 function useRoadBuilding(){
@@ -382,8 +408,8 @@ function renderBoard(){
     } else {
       const p=players[owner];
       const isCity=p.cities.has(v.id);
-      const txt=svg('text',{x:v.x,y:v.y+4,'text-anchor':'middle','font-size':isCity?'18':'16'});
-      txt.textContent=isCity?'🐉':'🦎'; // ciudad=charizard, pueblo=charmander
+      const txt=svg('text',{x:v.x,y:v.y+8,'text-anchor':'middle','font-size':isCity?'28':'24'});
+      txt.textContent=isCity ? p.cityIcon : p.settlementIcon;
       boardEl.appendChild(txt);
       const badge=svg('text',{x:v.x,y:v.y-12,'text-anchor':'middle','font-size':'11'}); badge.textContent=p.badge; boardEl.appendChild(badge);
       if(!isCpuTurn()){ txt.style.cursor='pointer'; txt.addEventListener('click',()=>{if(state.mode==='city') tryBuildCity(v.id);}); }

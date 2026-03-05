@@ -13,7 +13,7 @@
   - ⚡ Pikachu (amarillo)
 - Los otros 3 equipos los controla la CPU.
 - Dados con animación visual.
-- Pueblo = **Charmander** (🦎) y Ciudad = **Charizard** (🐉).
+- Cada facción tiene sus propios iconos de pueblo/ciudad (no se repiten entre colores) y se ven más grandes en tablero.
 - Puertos marítimos con comercio **3:1** y **2:1** por recurso.
 - Cartas de desarrollo (coste: 1 lana + 1 trigo + 1 mineral):
   - Caballero,
@@ -25,6 +25,8 @@
   - Ruta comercial (carretera más larga, mínimo 5) = +2 puntos.
   - Gran ejército (mínimo 3 caballeros jugados) = +2 puntos.
 - El tablero cambia aleatoriamente en cada partida.
+
+- Panel izquierdo fijo con recursos/cartas de todos los jugadores para no tener que bajar.
 
 ## Flujo de partida
 1. Elige tu equipo y pulsa **Comenzar partida**.
